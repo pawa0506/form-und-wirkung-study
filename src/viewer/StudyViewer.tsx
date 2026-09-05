@@ -119,9 +119,10 @@ export function StudyViewer({ stimulus, language }: StudyViewerProps) {
         }
         setStatus("ready");
       })
-      .catch(() => {
-        if (!disposed) setStatus("error");
-      });
+     .catch((error) => {
+  console.error("Failed to load study asset:", stimulus, error);
+  if (!disposed) setStatus("error");
+});
 
     return () => {
       disposed = true;

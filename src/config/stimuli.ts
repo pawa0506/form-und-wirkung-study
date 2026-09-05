@@ -10,10 +10,10 @@ export const studyStimuli: Stimulus[] = [
     hiddenVariantId: "variant-a",
     hiddenVariantLabel: "3D Gaussian Splatting",
     assetType: "splat-ply",
-    assetPath: "/assets/sculptures/sculpture-01/variant-a/model.ply",
+    assetPath: "/assets/sculptures/sculpture-01/variant-a/Projekt7.ply",
     referenceImagePath: "/assets/sculptures/sculpture-01/Bronzemann.jpeg",
     rendererType: "splat",
-    isPlaceholder: true,
+    isPlaceholder: false,
     placeholderShape: "figure",
   },
   {

@@ -135,23 +135,64 @@ const SplatRenderer: RendererAdapter = {
     if (!renderer.capabilities.isWebGL2) {
       throw new Error("Gaussian splats require WebGL 2.");
     }
+
     const { SparkRenderer, SplatMesh } = await import("@sparkjsdev/spark");
     const sparkRenderer = new SparkRenderer({ renderer });
-    const splatMesh = new SplatMesh({ url: resolvePublicPath(stimulus.assetPath) });
+    const splatMesh = new SplatMesh({
+      url: resolvePublicPath(stimulus.assetPath),
+    });
+
     const object = new THREE.Group();
     object.add(splatMesh);
     scene.add(sparkRenderer, object);
+
+    let boundingBox: THREE.Box3;
+
     try {
       await splatMesh.initialized;
+
+      let attempts = 0;
+
+      while (splatMesh.numSplats === 0 && attempts < 100) {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        attempts++;
+      }
+
+      if (splatMesh.numSplats === 0) {
+        throw new Error(
+          "Splat file loaded, but no splats became available.",
+        );
+      }
+
+      boundingBox = new THREE.Box3();
+      let validCenters = 0;
+
+      splatMesh.forEachSplat((_index, center) => {
+        if (
+          Number.isFinite(center.x) &&
+          Number.isFinite(center.y) &&
+          Number.isFinite(center.z)
+        ) {
+          boundingBox.expandByPoint(center);
+          validCenters++;
+        }
+      });
+
+      if (validCenters === 0 || boundingBox.isEmpty()) {
+        throw new Error(
+          "Splat file contains no finite center positions.",
+        );
+      }
     } catch (error) {
       scene.remove(object, sparkRenderer);
       splatMesh.dispose();
       sparkRenderer.dispose();
       throw error;
     }
+
     return {
       object,
-      boundingBox: splatMesh.getBoundingBox(false),
+      boundingBox,
       dispose: () => {
         scene.remove(object, sparkRenderer);
         splatMesh.dispose();
