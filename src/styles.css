@@ -149,7 +149,7 @@ p { line-height: 1.65; }
 .reset-button { min-height: 42px; cursor: pointer; pointer-events: auto; white-space: nowrap; }
 .reset-button:not(:disabled):hover { background: #3d4945; }
 .reset-button:disabled { opacity: .5; }
-.reference-card { height: clamp(130px, 18vh, 230px); min-height: 130px; margin: 0; display: grid; grid-template-rows: 1fr auto; border: 1px solid var(--line); background: var(--paper-deep); }
+.reference-card { height: clamp(320px, 55vh, 560px); min-height: 320px; margin: 0; display: grid; grid-template-rows: 1fr auto; border: 1px solid var(--line); background: var(--paper-deep); }
 .reference-card img { width: 100%; height: 100%; min-height: 0; display: block; object-fit: contain; }
 .reference-card figcaption { min-height: 48px; padding: 0 14px; display: flex; align-items: center; justify-content: space-between; background: var(--paper); color: var(--muted); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; }
 .reference-card figcaption span:first-child { color: var(--ink); font-weight: 750; }
