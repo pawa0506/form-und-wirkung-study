@@ -338,14 +338,43 @@ td code { padding: 3px 5px; background: var(--paper-deep); font-size: 10px; }
 }
 
 @media (max-width: 600px) {
-  .media-stack { grid-template-columns: 1fr; gap: 7px; padding-top: 6px; }
-  .viewer-shell { height: clamp(240px, 32vh, 300px); min-height: 240px; }
-  .reference-card { height: clamp(118px, 16vh, 145px); min-height: 118px; }
-  .reference-card figcaption { min-height: 32px; padding: 0 9px; font-size: 8px; }
-  .reference-fallback { gap: 5px; font-size: 10px; }
-  .reference-fallback svg { display: none; }
-  .reference-fallback .button { min-height: 30px; padding: 0 10px; font-size: 10px; }
-  .panel-label { margin: 0 0 4px; font-size: 9px; }
+  .media-stack {
+    grid-template-columns: 1fr;
+    gap: 7px;
+    padding-top: 6px;
+  }
+
+  .viewer-shell,
+  .reference-card {
+    height: clamp(240px, 32vh, 300px);
+    min-height: 240px;
+  }
+
+  .reference-card figcaption {
+    min-height: 32px;
+    padding: 0 9px;
+    font-size: 8px;
+  }
+
+  .reference-fallback {
+    gap: 5px;
+    font-size: 10px;
+  }
+
+  .reference-fallback svg {
+    display: none;
+  }
+
+  .reference-fallback .button {
+    min-height: 30px;
+    padding: 0 10px;
+    font-size: 10px;
+  }
+
+  .panel-label {
+    margin: 0 0 4px;
+    font-size: 9px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -378,10 +407,19 @@ td code { padding: 3px 5px; background: var(--paper-deep); font-size: 10px; }
 }
 
 @media (max-width: 480px) and (max-height: 650px) {
-  .viewer-shell { height: 205px; min-height: 205px; }
-  .reference-card { height: 96px; min-height: 96px; }
-  .reference-card figcaption { min-height: 28px; }
-  .panel-label { display: none; }
+  .viewer-shell,
+  .reference-card {
+    height: 205px;
+    min-height: 205px;
+  }
+
+  .reference-card figcaption {
+    min-height: 28px;
+  }
+
+  .panel-label {
+    display: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
