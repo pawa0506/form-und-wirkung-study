@@ -29,6 +29,7 @@ export interface Stimulus {
   assetPath: string;
   mtlPath?: string;
   referenceImagePath: string;
+  referenceImagePaths?: readonly [string, string];
   rendererType: RendererType;
   initialRotation?: [number, number, number];
   isPlaceholder?: boolean;

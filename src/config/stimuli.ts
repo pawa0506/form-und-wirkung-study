@@ -1,5 +1,11 @@
 import type { Stimulus } from "../types/study";
 
+export const sculptureReferences = {
+  "sculpture-01": ["/assets/sculptures/sculpture-01/HerbstBronzemannFull.jpg", "/assets/sculptures/sculpture-01/reference-2.jpeg"],
+  "sculpture-02": ["/assets/sculptures/sculpture-02/HerbstZerrissenheitFull.jpeg", "/assets/sculptures/sculpture-02/reference-2.jpeg"],
+  "sculpture-03": ["/assets/sculptures/sculpture-03/Stadtmusikanten.jpeg", "/assets/sculptures/sculpture-03/reference-2.jpeg"],
+} as const;
+
 // Internal method labels are intentionally confined to configuration and admin UI.
 // Remove `isPlaceholder` only after the corresponding final asset has been added.
 export const studyStimuli: Stimulus[] = [
@@ -11,7 +17,8 @@ export const studyStimuli: Stimulus[] = [
     hiddenVariantLabel: "3D Gaussian Splatting",
     assetType: "splat-ply",
     assetPath: "/assets/sculptures/sculpture-01/variant-a/BronzemannOhneMaske3M50KBereinigt.ply",
-    referenceImagePath: "/assets/sculptures/sculpture-01/HerbstBronzemannFull.jpg",
+    referenceImagePath: sculptureReferences["sculpture-01"][0],
+    referenceImagePaths: sculptureReferences["sculpture-01"],
     rendererType: "splat",
     isPlaceholder: false,
     placeholderShape: "figure",
@@ -25,7 +32,8 @@ export const studyStimuli: Stimulus[] = [
     hiddenVariantLabel: "Hunyuan3D 2.1",
     assetType: "glb",
     assetPath: "/assets/sculptures/sculpture-01/variant-b/model.glb",
-    referenceImagePath: "/assets/sculptures/sculpture-01/HerbstBronzemannFull.jpg",
+    referenceImagePath: sculptureReferences["sculpture-01"][0],
+    referenceImagePaths: sculptureReferences["sculpture-01"],
     rendererType: "mesh",
     isPlaceholder: true,
     placeholderShape: "figure",
@@ -39,7 +47,8 @@ export const studyStimuli: Stimulus[] = [
     assetType: "obj",
     assetPath: "/assets/sculptures/sculpture-01/variant-c/model.obj",
     mtlPath: "/assets/sculptures/sculpture-01/variant-c/model.mtl",
-    referenceImagePath: "/assets/sculptures/sculpture-01/HerbstBronzemannFull.jpg",
+    referenceImagePath: sculptureReferences["sculpture-01"][0],
+    referenceImagePaths: sculptureReferences["sculpture-01"],
     rendererType: "mesh",
     isPlaceholder: true,
     placeholderShape: "figure",
@@ -52,7 +61,8 @@ export const studyStimuli: Stimulus[] = [
     hiddenVariantLabel: "Hunyuan3D 2.1",
     assetType: "glb",
     assetPath: "/assets/sculptures/sculpture-02/variant-a/model.glb",
-    referenceImagePath: "/assets/sculptures/sculpture-02/HerbstZerrissenheitFull.jpeg",
+    referenceImagePath: sculptureReferences["sculpture-02"][0],
+    referenceImagePaths: sculptureReferences["sculpture-02"],
     rendererType: "mesh",
     isPlaceholder: true,
     placeholderShape: "arch",
@@ -66,7 +76,8 @@ export const studyStimuli: Stimulus[] = [
     assetType: "obj",
     assetPath: "/assets/sculptures/sculpture-02/variant-b/model.obj",
     mtlPath: "/assets/sculptures/sculpture-02/variant-b/model.mtl",
-    referenceImagePath: "/assets/sculptures/sculpture-02/HerbstZerrissenheitFull.jpeg",
+    referenceImagePath: sculptureReferences["sculpture-02"][0],
+    referenceImagePaths: sculptureReferences["sculpture-02"],
     rendererType: "mesh",
     isPlaceholder: true,
     placeholderShape: "arch",
@@ -79,7 +90,8 @@ export const studyStimuli: Stimulus[] = [
     hiddenVariantLabel: "3D Gaussian Splatting",
     assetType: "splat-ply",
     assetPath: "/assets/sculptures/sculpture-02/variant-c/InZerrissenheit3m50kOhneMaske4kBereiningt.ply",
-    referenceImagePath: "/assets/sculptures/sculpture-02/HerbstZerrissenheitFull.jpeg",
+    referenceImagePath: sculptureReferences["sculpture-02"][0],
+    referenceImagePaths: sculptureReferences["sculpture-02"],
     rendererType: "splat",
     isPlaceholder: false,
     placeholderShape: "arch",
@@ -94,7 +106,8 @@ export const studyStimuli: Stimulus[] = [
     assetType: "obj",
     assetPath: "/assets/sculptures/sculpture-03/variant-a/model.obj",
     mtlPath: "/assets/sculptures/sculpture-03/variant-a/model.mtl",
-    referenceImagePath: "/assets/sculptures/sculpture-03/Stadtmusikanten.jpeg",
+    referenceImagePath: sculptureReferences["sculpture-03"][0],
+    referenceImagePaths: sculptureReferences["sculpture-03"],
     rendererType: "mesh",
     isPlaceholder: true,
     placeholderShape: "spire",
@@ -107,7 +120,8 @@ export const studyStimuli: Stimulus[] = [
     hiddenVariantLabel: "3D Gaussian Splatting",
     assetType: "splat-ply",
     assetPath: "/assets/sculptures/sculpture-03/variant-b/Stadtmusikanten3M50kohneMaskeMitNachbearbeitung.ply",
-    referenceImagePath: "/assets/sculptures/sculpture-03/Stadtmusikanten.jpeg",
+    referenceImagePath: sculptureReferences["sculpture-03"][0],
+    referenceImagePaths: sculptureReferences["sculpture-03"],
     rendererType: "splat",
     isPlaceholder: false,
     placeholderShape: "spire",
@@ -121,7 +135,8 @@ export const studyStimuli: Stimulus[] = [
     hiddenVariantLabel: "Hunyuan3D 2.1",
     assetType: "glb",
     assetPath: "/assets/sculptures/sculpture-03/variant-c/model.glb",
-    referenceImagePath: "/assets/sculptures/sculpture-03/Stadtmusikanten.jpeg",
+    referenceImagePath: sculptureReferences["sculpture-03"][0],
+    referenceImagePaths: sculptureReferences["sculpture-03"],
     rendererType: "mesh",
     isPlaceholder: true,
     placeholderShape: "spire",
@@ -161,6 +176,16 @@ export function validateStimulusManifest(stimuli: Stimulus[] = studyStimuli): st
   if (stimuli.length !== 9) errors.push("The manifest must contain exactly nine real stimuli.");
 
   grouped.forEach((block, sculptureId) => {
+    if (block.some((stimulus) => !stimulus.referenceImagePaths
+      || stimulus.referenceImagePaths.length !== 2
+      || new Set(stimulus.referenceImagePaths).size !== 2
+      || stimulus.referenceImagePaths.some((path) => !path.trim())
+      || stimulus.referenceImagePaths[0] !== stimulus.referenceImagePath)) {
+      errors.push(`${sculptureId} must have two distinct references with the primary image first.`);
+    }
+    if (new Set(block.map((stimulus) => JSON.stringify(stimulus.referenceImagePaths))).size !== 1) {
+      errors.push(`${sculptureId} must share both reference images across all variants.`);
+    }
     if (block.length !== 3) errors.push(`${sculptureId} must contain exactly three variants.`);
     if (new Set(block.map((stimulus) => stimulus.hiddenVariantId)).size !== block.length) {
       errors.push(`${sculptureId} contains duplicate hidden variant IDs.`);

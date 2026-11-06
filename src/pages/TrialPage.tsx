@@ -45,7 +45,7 @@ export function TrialPage({
             </div>
             <div className="reference-panel">
               <div className="panel-label"><span>02</span>{language === "de" ? "Fotografie des Originals" : "Photograph of the original"}</div>
-              <ReferenceImage key={stimulus.referenceImagePath} path={stimulus.referenceImagePath} language={language} />
+              <ReferenceImage key={stimulus.id} path={stimulus.referenceImagePath} paths={stimulus.referenceImagePaths} language={language} />
             </div>
           </aside>
           <LikertForm

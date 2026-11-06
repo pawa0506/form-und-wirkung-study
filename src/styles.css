@@ -153,7 +153,19 @@ p { line-height: 1.65; }
 .reset-button { min-height: 42px; cursor: pointer; pointer-events: auto; white-space: nowrap; }
 .reset-button:not(:disabled):hover { background: #3d4945; }
 .reset-button:disabled { opacity: .5; }
-.reference-card { height: clamp(320px, 55vh, 560px); min-height: 320px; margin: 0; display: grid; grid-template-rows: 1fr auto; border: 1px solid var(--line); background: var(--paper-deep); }
+.reference-card { height: clamp(320px, 55vh, 560px); min-height: 320px; margin: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; border: 1px solid var(--line); background: var(--paper-deep); }
+.reference-options { display: flex; gap: 4px; flex-shrink: 0; }
+.reference-zoom-shell { position: relative; min-height: 0; overflow: hidden; }
+.reference-zoom-frame { position: absolute; inset: 0; overflow: hidden; touch-action: none; cursor: grab; }
+.reference-zoom-frame:active { cursor: grabbing; }
+.reference-zoom-frame img { user-select: none; pointer-events: none; transform-origin: center; }
+.reference-zoom-tools { position: absolute; bottom: 6px; right: 6px; left: 6px; display: flex; justify-content: flex-end; align-items: center; gap: 4px; pointer-events: none; }
+.reference-zoom-tools span { margin-right: auto; padding: 4px; background: var(--paper); font-size: 10px; }
+.reference-zoom-tools button { pointer-events: auto; min-width: 44px; min-height: 44px; padding: 4px 8px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); font: inherit; font-size: 12px; cursor: pointer; }
+@media (max-width: 600px) { .reference-zoom-tools span { display: none; } }
+.reference-options button { min-height: 44px; padding: 0 8px; border: 1px solid var(--line); background: var(--white); color: var(--ink); font: inherit; letter-spacing: normal; cursor: pointer; }
+.reference-options button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--white); }
+.reference-card figcaption:has(.reference-options) { gap: 6px; flex-wrap: wrap; padding: 4px 9px; }
 .reference-card img { width: 100%; height: 100%; min-height: 0; display: block; object-fit: contain; }
 .reference-card figcaption { min-height: 48px; padding: 0 14px; display: flex; align-items: center; justify-content: space-between; background: var(--paper); color: var(--muted); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; }
 .reference-card figcaption span:first-child { color: var(--ink); font-weight: 750; }
