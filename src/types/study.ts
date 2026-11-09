@@ -2,9 +2,11 @@ export type AssetType = "glb" | "obj" | "splat-ply";
 export type RendererType = "mesh" | "splat";
 export type DeviceType = "desktop" | "tablet" | "mobile";
 export type Language = "de" | "en";
+export type Experience3D = "never" | "rarely" | "occasionally" | "often" | "very_often";
 export type StudyStage =
   | "landing"
   | "consent"
+  | "experience"
   | "declined"
   | "instructions"
   | "practice"
@@ -41,6 +43,8 @@ export interface Ratings {
   color: number | null;
   surface: number | null;
   detail: number | null;
+  material_realism: number | null;
+  view_stability: number | null;
   artifacts: number | null;
   overall: number | null;
 }
@@ -55,7 +59,7 @@ export interface StudySession {
   participantId: string;
   deviceType: DeviceType;
   startedAt: string;
-  stage: Exclude<StudyStage, "landing" | "consent" | "declined">;
+  stage: Exclude<StudyStage, "landing" | "consent" | "experience" | "declined">;
   orderedStimulusIds: string[];
   currentTrialIndex: number;
   trialStartedAt: string | null;
@@ -65,6 +69,8 @@ export interface StudySession {
 export interface ParticipantRow {
   id: string;
   consented: boolean;
+  experience_3d?: Experience3D | null;
+  questionnaire_version?: 1 | 2;
   device_type: DeviceType;
   started_at: string;
   completed: boolean;
@@ -85,11 +91,14 @@ export interface TrialResponseRow {
   item_color: number;
   item_surface: number;
   item_detail: number;
+  item_material_realism?: number | null;
+  item_view_stability?: number | null;
+  questionnaire_version?: 1 | 2;
   item_artifacts: number;
   item_overall: number;
   open_visual_observations: string | null;
   trial_started_at: string;
   trial_submitted_at: string;
   trial_duration_ms: number;
-  participants?: Pick<ParticipantRow, "device_type" | "completed"> | null;
+  participants?: Pick<ParticipantRow, "device_type" | "completed" | "experience_3d" | "questionnaire_version"> | null;
 }

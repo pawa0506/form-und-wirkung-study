@@ -25,9 +25,9 @@ function response(overall: number, geometry: number): TrialResponseRow {
 }
 
 describe("admin statistics", () => {
-  it("reports all six item summaries", () => {
+  it("reports all eight item summaries", () => {
     const summaries = summarizeResponses([response(6, 2), response(4, 6)]);
-    expect(summaries).toHaveLength(6);
+    expect(summaries).toHaveLength(8);
     expect(summaries.find((summary) => summary.field === "item_geometry")).toMatchObject({ mean: 4, median: 4, count: 2 });
   });
 

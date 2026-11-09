@@ -1,3 +1,4 @@
+import { participantCsvRows, responseCsvRows } from "./exports";
 import {
   BarChart3,
   CheckCircle2,
@@ -19,7 +20,8 @@ import {
   signInAdmin,
   signOutAdmin,
 } from "../lib/study-data";
-import { summarizeModels, summarizeResponses } from "../lib/statistics";
+import { experienceLabels, experienceValues } from "../config/experience";
+import { summarizeExperience, filterResponses, summarizeModels, summarizeResponses } from "../lib/statistics";
 import type { ParticipantRow, TrialResponseRow } from "../types/study";
 
 const itemLabels: Record<string, string> = {
@@ -27,6 +29,8 @@ const itemLabels: Record<string, string> = {
   item_color: "Farbtreue",
   item_surface: "Oberfläche / Textur",
   item_detail: "Detailtreue",
+  item_material_realism: "Materialrealismus",
+  item_view_stability: "Blickwinkelstabilität",
   item_artifacts: "Visuelle Artefakte",
   item_overall: "Globale Übereinstimmung",
 };
@@ -42,44 +46,6 @@ function formatNumber(value: number | null): string {
 function formatDate(value: string | null): string {
   if (!value) return "—";
   return new Intl.DateTimeFormat("de-DE", { dateStyle: "short", timeStyle: "short" }).format(new Date(value));
-}
-
-function participantCsvRows(participants: ParticipantRow[]): Record<string, unknown>[] {
-  return participants.map((participant) => ({
-    participant_uuid: participant.id,
-    consented: participant.consented,
-    device_type: participant.device_type,
-    started_at: participant.started_at,
-    completed: participant.completed,
-    completed_at: participant.completed_at,
-    randomized_sequence: participant.randomized_sequence,
-  }));
-}
-
-function responseCsvRows(responses: TrialResponseRow[]): Record<string, unknown>[] {
-  return responses.map((response) => ({
-    participant_uuid: response.participant_id,
-    trial_index: response.trial_index,
-    trial_number: response.trial_index + 1,
-    sculpture_id: response.sculpture_id,
-    hidden_variant_id: response.hidden_variant_id,
-    reconstruction_method_internal: internalMethod(response),
-    asset_type: response.asset_type,
-    renderer_type: response.renderer_type,
-    reference_image_path: response.reference_image_path,
-    device_type: response.participants?.device_type ?? "",
-    participant_completed: response.participants?.completed ?? false,
-    item_geometry: response.item_geometry,
-    item_color: response.item_color,
-    item_surface: response.item_surface,
-    item_detail: response.item_detail,
-    item_artifacts: response.item_artifacts,
-    item_overall: response.item_overall,
-    open_visual_observations: response.open_visual_observations,
-    trial_started_at: response.trial_started_at,
-    trial_submitted_at: response.trial_submitted_at,
-    trial_duration_ms: response.trial_duration_ms,
-  }));
 }
 
 function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
@@ -132,6 +98,8 @@ export function AdminApp() {
   const [sculptureFilter, setSculptureFilter] = useState("");
   const [variantFilter, setVariantFilter] = useState("");
   const [deviceFilter, setDeviceFilter] = useState("");
+  const [experienceFilter, setExperienceFilter] = useState("");
+  const [versionFilter, setVersionFilter] = useState("2");
   const [completionFilter, setCompletionFilter] = useState("");
 
   const load = async () => {
@@ -155,13 +123,11 @@ export function AdminApp() {
     });
   }, []);
 
-  const filteredResponses = useMemo(() => responses.filter((response) => {
-    const participant = response.participants;
-    return (!sculptureFilter || response.sculpture_id === sculptureFilter)
-      && (!variantFilter || response.hidden_variant_id === variantFilter)
-      && (!deviceFilter || participant?.device_type === deviceFilter)
-      && (!completionFilter || String(participant?.completed) === completionFilter);
-  }), [responses, sculptureFilter, variantFilter, deviceFilter, completionFilter]);
+  const filteredResponses = useMemo(() => filterResponses(responses, {
+    sculpture: sculptureFilter, variant: variantFilter, device: deviceFilter,
+    completion: completionFilter, experience: experienceFilter, version: versionFilter,
+  }), [responses, sculptureFilter, variantFilter, deviceFilter, completionFilter, experienceFilter, versionFilter]);
+  const experienceSummary = summarizeExperience(filteredResponses);
 
   const summaries = useMemo(() => summarizeResponses(filteredResponses), [filteredResponses]);
   const modelSummaries = useMemo(() => summarizeModels(filteredResponses), [filteredResponses]);
@@ -194,8 +160,11 @@ export function AdminApp() {
         </section>
 
         <section className="admin-section filter-section">
-          <div className="section-heading"><div><Filter size={18} /><h2>Filter</h2></div><button type="button" className="text-button" onClick={() => { setSculptureFilter(""); setVariantFilter(""); setDeviceFilter(""); setCompletionFilter(""); }}>Zurücksetzen</button></div>
+          <div className="section-heading"><div><Filter size={18} /><h2>Filter</h2></div><button type="button" className="text-button" onClick={() => { setSculptureFilter(""); setVariantFilter(""); setDeviceFilter(""); setCompletionFilter(""); setExperienceFilter(""); setVersionFilter(""); }}>Zurücksetzen</button></div>
+          <p>Die Übersichtszahlen zeigen alle Daten. Tabellen und Statistiken berücksichtigen alle Filter. Version 1 enthält ältere Formulierungen; fehlende Zusatzitems werden nicht als 0 gewertet. „Keine Angabe“ umfasst auch ältere, nicht erhobene Erfahrungswerte.</p>
           <div className="filter-grid">
+            <label>Fragebogenversion<select value={versionFilter} onChange={e => setVersionFilter(e.target.value)}><option value="">Alle (unterschiedliche Formulierungen)</option><option value="2">Version 2 – acht Items</option><option value="1">Version 1 – sechs Items</option></select></label>
+            <label>Erfahrung mit 3D-Modellen<select value={experienceFilter} onChange={e => setExperienceFilter(e.target.value)}><option value="">Alle Erfahrungsstufen</option>{[...experienceValues, "none"].map((value, i) => <option value={value} key={value}>{experienceLabels.de[i]}</option>)}</select></label>
             <label>Skulptur<select value={sculptureFilter} onChange={(event) => setSculptureFilter(event.target.value)}><option value="">Alle</option>{sculptures.map((value) => <option key={value}>{value}</option>)}</select></label>
             <label>Interne Variante<select value={variantFilter} onChange={(event) => setVariantFilter(event.target.value)}><option value="">Alle</option>{variants.map((value) => <option key={value}>{value}</option>)}</select></label>
             <label>Gerät<select value={deviceFilter} onChange={(event) => setDeviceFilter(event.target.value)}><option value="">Alle</option><option value="desktop">Desktop</option><option value="tablet">Tablet</option><option value="mobile">Mobil</option></select></label>
@@ -218,6 +187,10 @@ export function AdminApp() {
         </section>
 
         <section className="admin-section">
+          <h2>Vergleich nach 3D-Erfahrung</h2><p>Gültige Gesamtbewertungen (Q8 in Version 2). Personen können mehrere Modelle bewerten. Bei weniger als fünf Personen wird eine kleine Gruppe gekennzeichnet; dies ist keine statistische Mindestgrenze.</p>
+          <div className="table-scroll"><table><thead><tr><th>Erfahrung</th><th>Unterschiedliche Teilnehmende</th><th>Gültige Bewertungen</th><th>Mittelwert</th><th>Median</th><th>Hinweis</th></tr></thead><tbody>{experienceSummary.map((row, i) => <tr key={row.experience}><td>{experienceLabels.de[i]}</td><td>{row.participants}</td><td>{row.count}</td><td>{formatNumber(row.mean)}</td><td>{formatNumber(row.median)}</td><td>{row.participants > 0 && row.participants < 5 ? "Kleine Gruppe – eingeschränkt interpretierbar" : "—"}</td></tr>)}</tbody></table></div>
+        </section>
+        <section className="admin-section">
           <div className="section-heading"><div><Users size={18} /><h2>Offene Antworten</h2></div><span>{openResponses.length} Antworten im Filter</span></div>
           <div className="open-response-list">
             {openResponses.length ? openResponses.map((row) => (
@@ -230,9 +203,9 @@ export function AdminApp() {
         </section>
 
         <section className="admin-section">
-          <div className="section-heading"><div><Users size={18} /><h2>Rohdaten</h2></div><div className="export-actions"><button type="button" className="button button-secondary" disabled={!participants.length} onClick={() => downloadCsv("participants.csv", participantCsvRows(participants))}><Download size={16} />Teilnehmende CSV</button><button type="button" className="button button-primary" disabled={!responses.length} onClick={() => downloadCsv("trial-responses.csv", responseCsvRows(responses))}><Download size={16} />Antworten CSV</button></div></div>
+          <div className="section-heading"><div><Users size={18} /><h2>Rohdaten</h2></div><div className="export-actions"><button type="button" className="button button-secondary" disabled={!participants.length} onClick={() => downloadCsv("participants.csv", participantCsvRows(participants))}><Download size={16} />Alle Teilnehmenden CSV</button><button type="button" className="button button-primary" disabled={!responses.length} onClick={() => downloadCsv("trial-responses.csv", responseCsvRows(responses))}><Download size={16} />Alle Antworten CSV</button><button type="button" className="button button-secondary" disabled={!filteredResponses.length} onClick={() => downloadCsv("filtered-responses.csv", responseCsvRows(filteredResponses))}>Gefilterte Antworten CSV</button></div></div>
           <div className="table-scroll raw-table">
-            <table><thead><tr><th>Zeitpunkt</th><th>Teilnehmer-UUID</th><th>Index</th><th>Skulptur</th><th>Variante</th><th>Methode (intern)</th><th>Gerät</th><th>Geometrie</th><th>Farbe</th><th>Oberfläche</th><th>Details</th><th>Artefakte</th><th>Gesamt</th><th>Dauer</th><th>Freitext</th></tr></thead><tbody>{filteredResponses.length ? filteredResponses.map((row) => <tr key={row.id ?? `${row.participant_id}-${row.trial_index}`}><td>{formatDate(row.trial_submitted_at)}</td><td><code>{row.participant_id}</code></td><td>{row.trial_index + 1}</td><td>{row.sculpture_id}</td><td><code>{row.hidden_variant_id}</code></td><td>{internalMethod(row)}</td><td>{row.participants?.device_type ?? "—"}</td><td>{row.item_geometry}</td><td>{row.item_color}</td><td>{row.item_surface}</td><td>{row.item_detail}</td><td>{row.item_artifacts}</td><td>{row.item_overall}</td><td>{Math.round(row.trial_duration_ms / 1000)} s</td><td className="open-cell">{row.open_visual_observations ?? "—"}</td></tr>) : <tr><td colSpan={15}>Keine Rohdaten für diesen Filter.</td></tr>}</tbody></table>
+            <table><thead><tr><th>Zeitpunkt</th><th>Teilnehmer-UUID</th><th>Index</th><th>Skulptur</th><th>Variante</th><th>Methode (intern)</th><th>Gerät</th><th>Erfahrung</th><th>Version</th><th>Geometrie</th><th>Farbe</th><th>Oberfläche</th><th>Details</th><th>Materialrealismus</th><th>Blickwinkelstabilität</th><th>Artefakte</th><th>Gesamt</th><th>Dauer</th><th>Freitext</th></tr></thead><tbody>{filteredResponses.length ? filteredResponses.map((row) => <tr key={row.id ?? `${row.participant_id}-${row.trial_index}`}><td>{formatDate(row.trial_submitted_at)}</td><td><code>{row.participant_id}</code></td><td>{row.trial_index + 1}</td><td>{row.sculpture_id}</td><td><code>{row.hidden_variant_id}</code></td><td>{internalMethod(row)}</td><td>{row.participants?.device_type ?? "—"}</td><td>{row.participants?.experience_3d ?? "Keine Angabe / nicht erhoben"}</td><td>{row.questionnaire_version ?? 1}</td><td>{row.item_geometry}</td><td>{row.item_color}</td><td>{row.item_surface}</td><td>{row.item_detail}</td><td>{row.item_material_realism ?? "—"}</td><td>{row.item_view_stability ?? "—"}</td><td>{row.item_artifacts}</td><td>{row.item_overall}</td><td>{Math.round(row.trial_duration_ms / 1000)} s</td><td className="open-cell">{row.open_visual_observations ?? "—"}</td></tr>) : <tr><td colSpan={19}>Keine Rohdaten für diesen Filter.</td></tr>}</tbody></table>
           </div>
         </section>
       </main>

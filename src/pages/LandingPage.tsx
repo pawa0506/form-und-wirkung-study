@@ -31,8 +31,8 @@ export function LandingPage({
           </p>
           <p className="landing-details">
             {language === "de"
-              ? "Sie untersuchen neun interaktive 3D-Modelle und bewerten sichtbare Form-, Farb-, Oberflächen- und Detailmerkmale. Die Teilnahme dauert ungefähr 12 Minuten, ist anonym und freiwillig; Sie können die Studie jederzeit durch Schließen des Fensters beenden."
-              : "You will inspect nine interactive 3D models and rate visible shape, color, surface, and detail characteristics. Participation takes about 12 minutes, is anonymous and voluntary; you may stop at any time by closing the window."}
+              ? "Sie untersuchen neun interaktive 3D-Modelle und bewerten sichtbare Form-, Farb-, Oberflächen- und Detailmerkmale. Die Dauer wird im Pilottest ermittelt. Die Teilnahme ist anonym und freiwillig; Sie können die Studie jederzeit durch Schließen des Fensters beenden."
+              : "You will inspect nine interactive 3D models and rate visible shape, color, surface, and detail characteristics. Duration will be established in the pilot study. Participation is anonymous and voluntary; you may stop at any time by closing the window."}
           </p>
           <button type="button" className="button button-primary button-large" onClick={onContinue}>
             {t.start}<ArrowRight size={19} />
@@ -56,8 +56,8 @@ export function LandingPage({
           </div>
           <div className="study-facts">
             <div><Eye size={19} /><span><strong>9</strong>{language === "de" ? "Modelle" : "models"}</span></div>
-            <div><MousePointer2 size={19} /><span><strong>6</strong>{language === "de" ? "Aussagen je Modell" : "statements each"}</span></div>
-            <div><Clock3 size={19} /><span><strong>12</strong>{language === "de" ? "Minuten" : "minutes"}</span></div>
+            <div><MousePointer2 size={19} /><span><strong>8</strong>{language === "de" ? "Aussagen je Modell" : "statements each"}</span></div>
+            <div><Clock3 size={19} /><span>{t.duration}</span></div>
           </div>
         </aside>
       </main>

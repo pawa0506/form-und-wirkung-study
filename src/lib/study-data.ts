@@ -1,5 +1,6 @@
 import type {
   DeviceType,
+  Experience3D,
   ParticipantRow,
   RandomizedTrialRecord,
   StudySession,
@@ -7,6 +8,7 @@ import type {
   TrialAnswers,
   TrialResponseRow,
 } from "../types/study";
+import { ratingsComplete } from "../study/ratings";
 import { supabase } from "./supabase";
 
 export interface ParticipantIdentity {
@@ -17,6 +19,7 @@ export interface ParticipantIdentity {
 export async function createParticipant(
   deviceType: DeviceType,
   orderedStimuli: Stimulus[],
+  experience: Experience3D | null,
 ): Promise<ParticipantIdentity> {
   const startedAt = new Date().toISOString();
   const randomizedSequence: RandomizedTrialRecord[] = orderedStimuli.map((stimulus) => ({
@@ -40,6 +43,8 @@ export async function createParticipant(
   const participant: ParticipantRow = {
     id: authData.user.id,
     consented: true,
+    experience_3d: experience,
+    questionnaire_version: 2,
     device_type: deviceType,
     started_at: startedAt,
     completed: false,
@@ -127,11 +132,9 @@ export async function submitTrialResponse(input: {
   startedAt: string;
   submittedAt: string;
 }): Promise<void> {
-  if (!supabase) return;
-
   const { ratings, openVisualObservations } = input.answers;
   const { stimulus } = input;
-  if (Object.values(ratings).some((value) => value === null)) {
+  if (!ratingsComplete(ratings)) {
     throw new Error("Incomplete ratings cannot be submitted.");
   }
 
@@ -147,6 +150,9 @@ export async function submitTrialResponse(input: {
     item_color: ratings.color as number,
     item_surface: ratings.surface as number,
     item_detail: ratings.detail as number,
+    item_material_realism: ratings.material_realism as number,
+    item_view_stability: ratings.view_stability as number,
+    questionnaire_version: 2,
     item_artifacts: ratings.artifacts as number,
     item_overall: ratings.overall as number,
     open_visual_observations: openVisualObservations.trim() || null,
@@ -158,6 +164,7 @@ export async function submitTrialResponse(input: {
     })(),
   };
 
+  if (!supabase) return;
   const { error } = await supabase.from("trial_responses").insert(row);
   if (!error) return;
   if (error.code !== "23505") throw new Error(error.message);
@@ -216,7 +223,7 @@ export async function fetchAdminData(): Promise<{
     supabase.from("participants").select("*").order("started_at", { ascending: false }),
     supabase
       .from("trial_responses")
-      .select("*, participants(device_type, completed)")
+      .select("*, participants(device_type, completed, experience_3d, questionnaire_version)")
       .order("trial_submitted_at", { ascending: false }),
   ]);
 

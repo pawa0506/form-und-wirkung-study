@@ -7,8 +7,8 @@ describe("stimulus manifest", () => {
   it("contains three complete blocks with shared reference images", () => {
     expect(validateStimulusManifest()).toEqual([]);
     expect(studyStimuli).toHaveLength(9);
-    expect(likertItems.de).toHaveLength(6);
-    expect(likertItems.en).toHaveLength(6);
+    expect(likertItems.de).toHaveLength(8);
+    expect(likertItems.en).toHaveLength(8);
   });
 
   it("keeps reconstruction methods internal and configures all supported adapters", () => {

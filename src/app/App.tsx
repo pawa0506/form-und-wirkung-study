@@ -7,6 +7,7 @@ import {
   reconcileParticipantSession,
   submitTrialResponse,
 } from "../lib/study-data";
+import { ExperiencePage } from "../pages/ExperiencePage";
 import { CompletionPage } from "../pages/CompletionPage";
 import { LanguageSwitch } from "../components/LanguageSwitch";
 import { ConsentPage } from "../pages/ConsentPage";
@@ -21,7 +22,7 @@ import {
   saveLanguage,
   saveSession,
 } from "../study/session";
-import type { Language, StudySession, StudyStage, TrialAnswers } from "../types/study";
+import type { Experience3D, Language, StudySession, StudyStage, TrialAnswers } from "../types/study";
 
 const AdminApp = lazy(() => import("../admin/AdminApp").then((module) => ({ default: module.AdminApp })));
 const TrialPage = lazy(() => import("../pages/TrialPage").then((module) => ({ default: module.TrialPage })));
@@ -37,7 +38,7 @@ export function App() {
   const [adminRoute, setAdminRoute] = useState(isAdminRoute);
   const [language, setLanguage] = useState<Language>(loadLanguage);
   const [session, setSession] = useState<StudySession | null>(loadSession);
-  const [preConsentStage, setPreConsentStage] = useState<Extract<StudyStage, "landing" | "consent" | "declined">>("landing");
+  const [preConsentStage, setPreConsentStage] = useState<Extract<StudyStage, "landing" | "consent" | "experience" | "declined">>("landing");
   const [creating, setCreating] = useState(false);
   const [consentError, setConsentError] = useState<string | null>(null);
   const [resumeState, setResumeState] = useState<"ready" | "checking" | "error">("ready");
@@ -103,13 +104,14 @@ export function App() {
     });
   };
 
-  const startParticipant = async () => {
+  const startParticipant = async (experience: Experience3D | null) => {
+    if (creating) return;
     setCreating(true);
     setConsentError(null);
     try {
       const deviceType = detectDeviceType();
       const orderedStimuli = createTrialOrder(studyStimuli);
-      const identity = await createParticipant(deviceType, orderedStimuli);
+      const identity = await createParticipant(deviceType, orderedStimuli, experience);
       const nextSession: StudySession = {
         version: 2,
         participantId: identity.id,
@@ -186,8 +188,9 @@ export function App() {
   }
 
   if (!session) {
+    if (preConsentStage === "experience") return <ExperiencePage language={language} onLanguageChange={setLanguage} onContinue={startParticipant} busy={creating} error={consentError} />;
     if (preConsentStage === "consent") {
-      return <ConsentPage language={language} onLanguageChange={setLanguage} onBack={() => setPreConsentStage("landing")} onConsent={startParticipant} onDecline={() => setPreConsentStage("declined")} busy={creating} error={consentError} />;
+      return <ConsentPage language={language} onLanguageChange={setLanguage} onBack={() => setPreConsentStage("landing")} onConsent={() => setPreConsentStage("experience")} onDecline={() => setPreConsentStage("declined")} busy={creating} error={consentError} />;
     }
     if (preConsentStage === "declined") return <DeclinedPage language={language} onLanguageChange={setLanguage} />;
     return <LandingPage language={language} onLanguageChange={setLanguage} onContinue={() => setPreConsentStage("consent")} />;

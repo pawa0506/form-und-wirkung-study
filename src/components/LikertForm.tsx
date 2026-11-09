@@ -1,18 +1,9 @@
 import { ArrowRight, LockKeyhole, RefreshCw } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { getCopy, likertItems } from "../config/copy";
+import { getCopy, likertItems, scaleLabels } from "../config/copy";
 import type { Language, Ratings, TrialAnswers } from "../types/study";
 
-const ratingKeys: (keyof Ratings)[] = ["geometry", "color", "surface", "detail", "artifacts", "overall"];
-
-const emptyRatings = (): Ratings => ({
-  geometry: null,
-  color: null,
-  surface: null,
-  detail: null,
-  artifacts: null,
-  overall: null,
-});
+import { ratingKeys, emptyRatings, ratingsComplete } from "../study/ratings";
 
 interface LikertFormProps {
   language: Language;
@@ -37,7 +28,7 @@ export function LikertForm({ language, stimulusId, onSubmit, submitLabel }: Like
     setError(null);
   }, [stimulusId]);
 
-  const complete = useMemo(() => Object.values(ratings).every((value) => value !== null), [ratings]);
+  const complete = useMemo(() => ratingsComplete(ratings), [ratings]);
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -69,6 +60,8 @@ export function LikertForm({ language, stimulusId, onSubmit, submitLabel }: Like
         </div>
       </div>
 
+      <p>{language === "de" ? "Betrachten Sie das 3D-Modell aus verschiedenen Blickwinkeln und vergleichen Sie es mit den Fotografien der Originalskulptur. Bewerten Sie anschließend die folgenden Aussagen." : "Inspect the 3D model from different angles and compare it with the photographs of the original sculpture. Then rate the following statements."}</p>
+      <details><summary>{language === "de" ? "Bedeutung der Skalenwerte" : "Meaning of the scale values"}</summary><ol>{scaleLabels[language].map(label => <li key={label}>{label}</li>)}</ol></details>
       <div className="likert-items">
         {likertItems[language].map((item, itemIndex) => {
           const key = ratingKeys[itemIndex];
@@ -80,6 +73,7 @@ export function LikertForm({ language, stimulusId, onSubmit, submitLabel }: Like
                   <label key={value} className={ratings[key] === value ? "selected" : ""}>
                     <input
                       type="radio"
+                      aria-label={`${value}: ${scaleLabels[language][value - 1]}`}
                       name={`${stimulusId}-${key}`}
                       value={value}
                       checked={ratings[key] === value}

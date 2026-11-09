@@ -3,7 +3,7 @@
 Production-oriented static React application for a within-subject bachelor
 thesis study on the perceived visual fidelity of 3D reconstructions of public
 sculptures. A non-persisted practice round is followed by exactly nine real
-trials. In every trial, the interactive model, shared sculpture reference, six
+trials. In every trial, the interactive model, shared sculpture reference, eight
 mandatory seven-point Likert items, and one optional text response remain on
 the same screen.
 
@@ -161,7 +161,7 @@ interruption is not shown again. Submitted trials have no back-navigation and
 cannot be updated through the participant database role.
 
 Questionnaire answers are intentionally not persisted in local storage. If a
-save fails, the current React state retains the six selections and open text,
+save fails, the current React state retains the eight selections and open text,
 shows an error, and offers another save attempt without advancing.
 
 ## Anonymous participant identity and stored data
@@ -169,9 +169,9 @@ shows an error, and offers another save attempt without advancing.
 Only after consent, Supabase `signInAnonymously()` creates an Auth user. Its UUID
 is also the `participants.id`; no name, email, phone, address, exact age, gender,
 account profile, or raw user-agent string is requested or stored by the app.
-The stored participant fields are consent, device category, timestamps,
+The stored participant fields are consent, device category, 3D experience, enrollment version, timestamps,
 completion state, and randomized sequence. Trial rows contain stimulus metadata,
-six scores, optional text, and timing.
+eight scores, optional text, and timing.
 
 Supabase Auth keeps its anonymous session tokens in browser storage so the same
 UUID can survive a reload. Application-owned local storage remains limited to
@@ -228,14 +228,14 @@ The dashboard provides:
 
 - started, completed, incomplete, and submitted-trial totals;
 - sculpture, hidden-variant, device, and completion filters;
-- `n`, mean, and median for each of the six Likert items;
+- `n`, mean, and median for each of the eight Likert items;
 - mean and median of the overall item for every sculpture/variant model;
 - filtered open responses and a full raw response table;
 - participant and trial-response CSV downloads.
 
 The response CSV includes participant UUID, zero-based trial index plus
 human-readable trial number, sculpture/variant IDs, internal method, device,
-all six scores, open response, start/submit timestamps, and duration. Exported
+all eight scores, open response, start/submit timestamps, and duration. Exported
 participant text that starts like a spreadsheet formula is prefixed safely to
 prevent CSV formula execution.
 
@@ -266,7 +266,7 @@ beside it. The model receives most of the media height, with the full reference
 image directly below. On tablets, model and reference sit side by side in a
 sticky media strip. On narrow phones, they stack in a sticky strip: the model
 retains the larger area and the reference remains directly visible. The media
-strip stays interactive while all six items and the optional textarea scroll
+strip stays interactive while all eight items and the optional textarea scroll
 beneath it. Likert targets are at least 42–44 px and the layout has no intended
 horizontal overflow.
 
@@ -315,3 +315,91 @@ refresh-safe without server rewrites.
 - Use a fresh participant to confirm exactly nine immutable rows and the final
   completion timestamp in Supabase.
 - Run `npm test` and `npm run build` from a clean checkout.
+
+
+## Questionnaire version 2 (2026-11-09)
+
+The eight mandatory items (1–7) are, in this exact order:
+
+1. Die Form und die Proportionen des 3D-Modells entsprechen der abgebildeten Skulptur.
+2. Die Farben des 3D-Modells stimmen mit denen der Skulptur auf den Referenzfotos überein.
+3. Die Oberflächenstruktur der Skulptur ist im 3D-Modell gut wiedergegeben.
+4. Feine Details der Skulptur sind im 3D-Modell gut wiedergegeben.
+5. Das 3D-Modell vermittelt einen realistischen Eindruck des dargestellten Materials (z. B. Bronze oder Stein).
+6. Beim Drehen des 3D-Modells bleiben Formen und Details visuell stabil.
+7. Das 3D-Modell ist weitgehend frei von störenden visuellen Darstellungsfehlern.
+8. Insgesamt stimmt das 3D-Modell visuell gut mit der fotografierten Skulptur überein.
+
+Optional question after every model:
+„Welche visuellen Eigenschaften oder Darstellungsfehler sind Ihnen beim Betrachten des 3D-Modells besonders aufgefallen?“
+
+Before instructions/practice: active consent → experience selection → participant
+INSERT → instructions → practice → nine randomized trials. Experience asks:
+„Wie häufig haben Sie bisher interaktive 3D-Modelle am Computer, Tablet oder Smartphone betrachtet?“
+Categories: Nie (`never`), Selten (`rarely`), Gelegentlich (`occasionally`),
+Häufig (`often`), Sehr häufig (`very_often`), Keine Angabe (`NULL`). A deliberate
+choice is required. No participant/auth account is created before this step.
+Failed saves retain the selection. Refresh before enrollment restarts consent;
+after enrollment the existing anonymous session resumes without asking again.
+Experience is not persisted in localStorage. Device detection remains automatic.
+Both participant languages contain all eight items and a collapsible seven-anchor
+scale legend. The duration must be measured in a pilot; no numeric estimate is given.
+
+### Apply the migration before deploying the frontend
+
+1. Back up/export existing study data. End any old frontend sessions before rollout.
+2. In the correct Supabase project, open **SQL Editor → New query**.
+3. Paste the entire file `supabase/migrations/202611090001_questionnaire_v2.sql`
+   and run it once. For a new project, run the initial migration first. If using
+   Supabase CLI migration tracking, apply the pending migration through that
+   workflow instead of also running it manually.
+4. Confirm participants has `experience_3d` and `questionnaire_version` and
+   trial_responses has `item_material_realism`, `item_view_stability`, and
+   `questionnaire_version`. Existing rows retain version 1 and NULL extra items.
+5. Deploy the new frontend, then test an anonymous enrollment, practice, refresh,
+   nine submissions, completion and admin exports against this project.
+
+No data is deleted, no old scores are rewritten, and no new UPDATE permissions
+are granted. Restrictive INSERT policies require version 2 for all new writes;
+CHECK constraints require both additional 1–7 answers. An outdated six-item
+client therefore fails visibly rather than storing incomplete new data.
+The migration has not been applied to the live project by this code change.
+
+Legacy sessions can retain their participant ID and randomized order and continue
+with the new eight-item wording. Their enrollment version remains 1; new trial
+rows have version 2. Their experience remains NULL (not collected). Do not treat
+mixed-version participants as a homogeneous completed v2 cohort. Already submitted
+trials remain immutable; uniqueness constraints and verified duplicate handling
+prevent double submission. Practice ratings are never inserted.
+
+### Admin analysis and exports
+
+All response tables, open texts and statistics apply sculpture, variant, device,
+completion, experience and questionnaire-version filters together (logical AND).
+The default version filter is 2 to avoid mixing changed item wording. Reset clears
+all filters, including experience and version. Global overview cards are explicitly
+unfiltered. NULL experience includes both opt-out and historical noncollection;
+participant enrollment version distinguishes these cases.
+
+Per-item statistics report valid n, mean and median for all eight items, excluding
+missing/invalid values. Experience comparison reports five categories plus missing,
+unique participant IDs, valid overall ratings, mean and median. The variant and
+sculpture filters also apply here. Fewer than five people is flagged descriptively,
+not as an inferential significance threshold. Repeated model ratings are not
+independent participants.
+
+Participant CSV includes experience and enrollment version. Response CSV includes
+experience, device, both new scores and the actual questionnaire version alongside
+all previous columns. Missing scores export as blank, never zero. Formula injection
+protection is retained. Export labels distinguish all-data exports and filtered
+response exports. No scientific significance tests are computed.
+
+### Verification before collection
+
+Run `npm test`, `npm run typecheck`, `npm run build`. The regression suite includes
+bilingual rendered forms, eight-value validation/mapping, opt-out enrollment,
+failed-save propagation, duplicate handling, historical resume, combined filters,
+missing-value statistics and CSV fields/protection. Browser interaction and live
+RLS checks still require a pilot: verify keyboard/touch, selection retention on
+save failure, both photo views and unchanged 3D camera while answering all items,
+mobile layout, and German/English switching. Measure actual completion duration.
